@@ -1,51 +1,48 @@
-# auth_utils.py
-
-import mysql.connector
-from mysql.connector import Error
+import sqlite3
 from streamlit_authenticator.utilities.hasher import Hasher
 
-# ========== MySQL Auth Helper Functions ==========
+# ========== SQLite Auth Helper Functions ==========
 
 def get_users_from_db():
-    conn = mysql.connector.connect(
-        host="mysql.railway.internal",   # From MYSQLHOST
-    user="root",                     # From MYSQLUSER
-    password="rMlJQIXfPHXfGHIcECEFGyybLMvUHXw",  # From MYSQLPASSWORD
-    database="railway",              # From MYSQL_DATABASE
-    port=3306 
-    )
-    cursor = conn.cursor(dictionary=True)
+    # Connect to the SQLite database (it will create the file if it doesn't exist)
+    conn = sqlite3.connect("users.db")  # SQLite DB file
+    cursor = conn.cursor()
+    
+    # Ensure the table exists (you can create it separately if needed)
+    cursor.execute('''CREATE TABLE IF NOT EXISTS users (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        username TEXT UNIQUE,
+                        name TEXT,
+                        password_hash TEXT)''')
+    
     cursor.execute("SELECT username, name, password_hash FROM users")
     users = cursor.fetchall()
     cursor.close()
     conn.close()
+    
     return users
 
 def format_credentials(users):
     credentials = {"usernames": {}}
     for user in users:
-        credentials["usernames"][user["username"]] = {
-            "name": user["name"],
-            "password": user["password_hash"]
+        credentials["usernames"][user[0]] = {
+            "name": user[1],
+            "password": user[2]
         }
     return credentials
 
 def register_user(name, username, password):
     hashed_password = Hasher().hash(password)
     try:
-        conn = mysql.connector.connect(
-            host="mysql.railway.internal",   # From MYSQLHOST
-    user="root",                     # From MYSQLUSER
-    password="rMlJQIXfPHXfGHIcECEFGyybLMvUHXw",  # From MYSQLPASSWORD
-    database="railway",              # From MYSQL_DATABASE
-    port=3306 
-        )
+        conn = sqlite3.connect("users.db")  # SQLite DB file
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO users (username, name, password_hash) VALUES (%s, %s, %s)",
+        
+        # Insert new user into the 'users' table
+        cursor.execute("INSERT INTO users (username, name, password_hash) VALUES (?, ?, ?)",
                        (username, name, hashed_password))
         conn.commit()
         cursor.close()
         conn.close()
         return True
-    except Error as e:
-        return False
+    except sqlite3.IntegrityError:
+        return False  # This indicates a duplicate username
