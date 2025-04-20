@@ -6,4 +6,4 @@ opencv-python
 numpy
 pytube
 yt-dlp
-
+tensorflow
