@@ -1,0 +1,8 @@
+streamlit
+streamlit-authenticator
+mysql-connector-python
+keras
+opencv-python
+numpy
+pytube
+yt-dlp
