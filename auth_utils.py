@@ -8,10 +8,11 @@ from streamlit_authenticator.utilities.hasher import Hasher
 
 def get_users_from_db():
     conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="varad@14",
-        database="violence_detection"
+        host="mysql.railway.internal",   # From MYSQLHOST
+    user="root",                     # From MYSQLUSER
+    password="rMlJQIXfPHXfGHIcECEFGyybLMvUHXw",  # From MYSQLPASSWORD
+    database="railway",              # From MYSQL_DATABASE
+    port=3306 
     )
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT username, name, password_hash FROM users")
@@ -33,10 +34,11 @@ def register_user(name, username, password):
     hashed_password = Hasher().hash(password)
     try:
         conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="varad@14",
-            database="violence_detection"
+            host="mysql.railway.internal",   # From MYSQLHOST
+    user="root",                     # From MYSQLUSER
+    password="rMlJQIXfPHXfGHIcECEFGyybLMvUHXw",  # From MYSQLPASSWORD
+    database="railway",              # From MYSQL_DATABASE
+    port=3306 
         )
         cursor = conn.cursor()
         cursor.execute("INSERT INTO users (username, name, password_hash) VALUES (%s, %s, %s)",
