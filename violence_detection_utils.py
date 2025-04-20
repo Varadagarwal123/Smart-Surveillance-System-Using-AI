@@ -15,19 +15,24 @@ from pytube import YouTube
 import tempfile
 
 def get_youtube_video_url(video_url):
-    # Download YouTube video using yt-dlp and get the best mp4 stream URL
     try:
-        # Using yt-dlp to download the video
+        # Use a temp directory to store downloaded file
+        temp_dir = tempfile.mkdtemp()
         ydl_opts = {
-            'format': 'bestvideo+bestaudio/best',  # Download best video+audio combination
-            'outtmpl': tempfile.mktemp(suffix='.mp4')  # Save it to a temporary file
+            'format': 'bestvideo+bestaudio/best',
+            'outtmpl': os.path.join(temp_dir, '%(title)s.%(ext)s'),  # Use yt-dlp's naming
+            'merge_output_format': 'mp4'
         }
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(video_url, download=True)
-            video_path = ydl.prepare_filename(info_dict)  # Get the path of the downloaded video
-        return video_path
+            video_path = ydl.prepare_filename(info_dict)
+
+        return video_path  # Full correct path
+
     except Exception as e:
         raise Exception(f"Error in downloading video: {str(e)}")
+
 
 
 
@@ -36,16 +41,23 @@ def get_youtube_video_url(video_url):
 def process_video(video_source, threshold=0.2):
     temp_video = tempfile.NamedTemporaryFile(delete=False, suffix='.avi')
     
+    
+
+    # Case 1: video_source is a YouTube URL
     if isinstance(video_source, str) and video_source.startswith("http"):
-    # If URL passed, download it
         video_path = get_youtube_video_url(video_source)
         cap = cv2.VideoCapture(video_path)
-        
+
+    # Case 2: video_source is a local path (like from YouTube download)
+    elif isinstance(video_source, str) and os.path.exists(video_source):
+        cap = cv2.VideoCapture(video_source)
+
+    # Case 3: video_source is a file-like object (like uploaded_file)
     else:
-        # Local file
         temp_video.write(video_source.read())
         temp_video.close()
         cap = cv2.VideoCapture(temp_video.name)
+
 
     try:
         model = load_model('modelnew.h5')
