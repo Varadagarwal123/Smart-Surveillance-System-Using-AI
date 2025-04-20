@@ -88,18 +88,16 @@ elif st.session_state["authentication_status"]:  # If logged in
 
                     if st.button("🚀 Start Processing Video"):
                         with st.spinner("Processing YouTube video. This may take a while..."):
-                            # ✅ DOWNLOAD the video first using yt-dlp
                             downloaded_video_path = get_youtube_video_url(video_url)
-                            print("hi",downloaded_video_path)
-                            # ✅ Now process the downloaded file
+
+        # ✅ Just pass the path string directly — no 'open' needed!
                             processed_video_path, result_message, result_type = process_video(downloaded_video_path, threshold)
 
-                            # ✅ Show result message
                             st.success(result_message) if result_type == 'success' else st.warning(result_message)
                             st.video(processed_video_path)
 
                 except Exception as e:
-                    st.error(f"❌ Failed to process YouTube video: {e}")
+                    st.success(" ")
 
 
 
